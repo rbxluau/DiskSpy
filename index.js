@@ -1,5 +1,5 @@
-import {usb} from "usb"
-import fs from "fs"
+const {usb} = require("usb")
+const fs = require("fs")
 
 usb.on("attach", (device) => {
     if (fs.existsSync("F:/")) {
