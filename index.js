@@ -1,20 +1,29 @@
+import {list} from "drivelist"
 import {usb} from "usb"
 import fs from "fs"
 
-let args = ["D:/Temp/", "F:/Backup/", "F:/"], info = null
+let args = ["{CF4327A7-CF04-40EB-869C-120E0BC238B6}", "D:/Temp/", "Backup/"]
 
-process.argv.slice(2, 5).forEach((arg, index) => {
-    args[index] = arg
+process.argv.slice(2, 5).forEach((value, index) => {
+    args[index] = value
 })
 
-usb.on("attach", (device) => {
-    info = device.deviceDescriptor
-    if (info.idVendor === 0x0781 && info.idProduct === 0x5591) {
-        if (fs.existsSync(args[0])) {
-            fs.cpSync(args[0], args[1], {recursive: true})
+usb.on("attach", async () => {
+    let mountpoints = [];
+    (await list()).forEach(drive => {
+        if (drive.isRemovable && drive.isUSB) {
+            mountpoints = mountpoints.concat(drive.mountpoints.map(mountpoint => mountpoint.path))
         }
-    }
-    else if (fs.existsSync(args[2])) {
-        fs.cpSync(args[2], args[0]+crypto.randomUUID(), {recursive: true})
-    }
+    })
+    mountpoints.forEach(mountpoint => {
+        fs.readFile(mountpoint+"System Volume Information/IndexerVolumeGuid", "utf8", (err, data) => {
+            if (! err) {
+                if (data === args[0]) {
+                    fs.cpSync(args[1], mountpoint+args[2], {recursive: true})
+                } else if (! fs.existsSync(args[1]+data)) {
+                    fs.cpSync(mountpoint, args[1]+data, {recursive: true})
+                }
+            }
+        })
+    })
 })

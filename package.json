@@ -9,6 +9,7 @@
   },
   "private": true,
   "dependencies": {
+    "drivelist": "^12.0.2",
     "usb": "^2.15.0"
   }
 }
