@@ -17,14 +17,14 @@ async function usbOn() {
     })
     mountpoints.forEach(mountpoint => {
         fs.readFile(mountpoint + "System Volume Information/IndexerVolumeGuid", "utf16le", (err, data) => {
-            if (!err) {
+            if (! err) {
                 if (data === args[0]) {
                     setTimeout((path) => {
                         if (fs.existsSync(args[1])) {
-                            fs.cpSync(args[1], path+args[2], {recursive: true})
+                            fs.cpSync(args[1], path + args[2] + crypto.randomUUID(), {recursive: true})
                         }
-                    }, 500, [mountpoint])
-                } else if (!fs.existsSync(args[1] + data)) {
+                    }, 1000, [mountpoint])
+                } else if (! fs.existsSync(args[1] + data)) {
                     fs.cpSync(mountpoint, args[1] + data, {recursive: true})
                 }
             }
